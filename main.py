@@ -3,13 +3,16 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from config import TOKEN
 from handler import register_handlers
 from scheduler import daily_progress
+import os
+from dotenv import load_dotenv
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
+load_dotenv()
+bot = Bot(token=os.getenv('BOT_API'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
 

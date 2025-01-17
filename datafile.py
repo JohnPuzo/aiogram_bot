@@ -30,6 +30,6 @@ def set_type(user_id, type):
 
 
 def validate_habit_input(habit: str) -> bool:
-    if len(habit) < 3 or len(habit) > 15 or not re.match(r"^[a-zA-Zа-яА-Я\s]+$", habit):
+    if len(habit) < 3 or len(habit) > 30 or not re.match(r"^[a-zA-Zа-яА-Я \s]+$", habit):
         return False
     return True
