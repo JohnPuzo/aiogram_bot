@@ -139,7 +139,7 @@ async def get_user_progress(user_id):
 
     start_date = await conn.fetchrow("SELECT start_date FROM users WHERE user_id = $1", str(user_id))
     days_passed = (date.today() - start_date[0]).days
-    return days_passed if days_passed else None
+    return days_passed if days_passed else 0
 
 
 async def set_start_date(user_id):

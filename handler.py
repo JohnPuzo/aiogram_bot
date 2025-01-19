@@ -5,7 +5,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 import middleware
 from datafile import *
-from keyboard import main_menu, habit_keyboard, specialist_menu, type_keyboard
+from keyboard import *
 from llm_integration import llm_invoke, preset_history
 
 router = Router()
@@ -77,6 +77,41 @@ async def style_selection(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer(f"Ты выбрал: {styles[style_str]}. Начнем борьбу! 💪", reply_markup=main_menu)
 
     await state.clear()
+
+
+@router.message(F.text == "Прогресс")
+@middleware.checking_habit
+@middleware.checking_style
+async def show_progress_menu(message: types.Message):
+    await message.answer("Выберите один из пунктов меню:", reply_markup=progress_menu)
+
+
+@router.message(F.text == "GigaChat")
+@middleware.checking_habit
+@middleware.checking_style
+async def show_gigachat_menu(message: types.Message):
+    await message.answer("Выберите один из пунктов меню:", reply_markup=gigachat_menu)
+
+
+@router.message(F.text == "Меню друзей")
+@middleware.checking_habit
+@middleware.checking_style
+async def show_gigachat_menu(message: types.Message):
+    await message.answer("Выберите один из пунктов меню:", reply_markup=friends_menu)
+
+
+@router.message(F.text == "Изменить привычку/тип общения")
+@middleware.checking_habit
+@middleware.checking_style
+async def show_gigachat_menu(message: types.Message):
+    await message.answer("Выберите один из пунктов меню:", reply_markup=change_menu)
+
+
+@router.message(F.text == "Назад")
+@middleware.checking_habit
+@middleware.checking_style
+async def show_main_menu(message: types.Message):
+    await message.answer("Выберите один из пунктов меню:", reply_markup=main_menu)
 
 
 @router.message(F.text == "Мой прогресс")
@@ -184,7 +219,7 @@ async def input_username_to_del(message: types.Message, state: FSMContext):
     await state.clear()
 
 
-@router.message(F.text == "Связаться со специалистом")
+@router.message(F.text == "Написать специалисту")
 @middleware.checking_habit
 @middleware.checking_style
 async def contact_specialist(message: types.Message, state: FSMContext):
@@ -206,5 +241,7 @@ async def llm_chat(message: types.Message, state: FSMContext):
 
 
 @router.message()
+@middleware.checking_habit
+@middleware.checking_style
 async def unknown_command(message: types.Message):
-    await message.answer("Такой команды нет.")
+    await message.answer("Такой команды нет. Попробуйте что-нибудь из предложенных вариантов:", reply_markup=main_menu)
