@@ -24,7 +24,7 @@ REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
 storage = RedisStorage.from_url(REDIS_URL)
 
-bot = Bot(token=BOT_TOKEN, storage=storage, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(token=BOT_TOKEN, storage=storage, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
 dp = Dispatcher()
 
 
