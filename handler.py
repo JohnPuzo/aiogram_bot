@@ -186,10 +186,6 @@ async def llm_chat(message: types.Message, state: FSMContext):
     await message.answer(result)
 
 
-def register_handlers(dp):
-    dp.include_router(router)
-
-
 @router.message()
 async def unknown_command(message: types.Message):
     await message.answer("Такой команды нет.")
