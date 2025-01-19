@@ -3,9 +3,8 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 main_menu = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="Мой прогресс"), KeyboardButton(text="Задание для отвлечения"), KeyboardButton(text="Связаться со специалистом")],
-        [KeyboardButton(text="Выбрать привычку"), KeyboardButton(text="Я сорвался"), KeyboardButton(text="Выбрать тип")],
-        [KeyboardButton(text="Добавить друга"), KeyboardButton(text="Удалить друга")]
+        [KeyboardButton(text="Прогресс"), KeyboardButton(text="GigaChat")],
+        [KeyboardButton(text="Меню друзей"), KeyboardButton(text="Изменить привычку/тип общения")],
     ],
     resize_keyboard=True
 )
@@ -30,6 +29,38 @@ type_keyboard = InlineKeyboardMarkup(
 specialist_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="Назад в меню")]
+    ],
+    resize_keyboard=True
+)
+
+progress_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Мой прогресс"), KeyboardButton(text="Я сорвался")],
+        [KeyboardButton(text="Назад")],
+    ],
+    resize_keyboard=True
+)
+
+gigachat_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Задание для отвлечения"), KeyboardButton(text="Написать специалисту")],
+        [KeyboardButton(text="Назад")],
+    ],
+    resize_keyboard=True
+)
+
+friends_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Добавить друга"), KeyboardButton(text="Удалить друга")],
+        [KeyboardButton(text="Назад")],
+    ],
+    resize_keyboard=True
+)
+
+change_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Выбрать привычку"), KeyboardButton(text="Выбрать тип")],
+        [KeyboardButton(text="Назад")],
     ],
     resize_keyboard=True
 )
