@@ -13,17 +13,17 @@ main_menu = ReplyKeyboardMarkup(
 
 habit_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="Курение 🚬", callback_data="habit_курение")],
-        [InlineKeyboardButton(text="Алкоголь 🍷", callback_data="habit_алкоголь")],
-        [InlineKeyboardButton(text="Фастфуд 🍔", callback_data="habit_фастфуд")],
+        [InlineKeyboardButton(text="Курение 🚬", callback_data="habit_smoking")],
+        [InlineKeyboardButton(text="Алкоголь 🍷", callback_data="habit_alcohol")],
+        [InlineKeyboardButton(text="Фастфуд 🍔", callback_data="habit_fastfood")],
         [InlineKeyboardButton(text="Своя привычка ✍", callback_data="habit_custom")]
     ]
 )
 
 type_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="Серьезно 😎", callback_data="type_серьезно")],
-        [InlineKeyboardButton(text="Шутливо 😂", callback_data="type_шутливо")],
+        [InlineKeyboardButton(text="Серьезно 😎", callback_data="type_true")],
+        [InlineKeyboardButton(text="Шутливо 😂", callback_data="type_false")],
     ]
 )
 
