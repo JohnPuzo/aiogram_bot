@@ -8,6 +8,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
 from dotenv import load_dotenv
 
+from datafile import create_dbs
 from handler import register_handlers
 from scheduler import daily_progress
 
@@ -30,6 +31,7 @@ dp = Dispatcher()
 
 async def main():
     register_handlers(dp)
+    await create_dbs()
     asyncio.create_task(daily_progress(bot))
     await dp.start_polling(bot)
 

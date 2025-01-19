@@ -68,10 +68,11 @@ async def process_custom_habit(message: types.Message, state: FSMContext):
 
 
 @router.callback_query(lambda c: c.data.startswith("type_"))
-async def style_selection(callback: types.CallbackQuery):
+async def style_selection(callback: types.CallbackQuery, state: FSMContext):
     style_str = callback.data.split("_")[1]
     style = True if style_str == "true" else False
     await set_style(callback.from_user.id, style)
+
     await callback.message.answer(f"Ты выбрал: {styles[style_str]}. Начнем борьбу! 💪", reply_markup=main_menu)
 
 

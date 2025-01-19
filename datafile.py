@@ -24,6 +24,32 @@ async def get_db_connection():
         return None
 
 
+async def create_dbs():
+    conn = await get_db_connection()
+    if not conn:
+        return None
+
+    query = """
+        CREATE TABLE IF NOT EXISTS users (
+            _id SERIAL PRIMARY KEY,
+            user_id VARCHAR(255) NOT NULL UNIQUE,
+            username VARCHAR(255),
+            habit VARCHAR(255),
+            start_date DATE,
+            communication_style BOOLEAN DEFAULT TRUE
+        );
+        
+        CREATE TABLE IF NOT EXISTS friends(
+            user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE,
+            friend_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE,
+            UNIQUE (user_id, friend_id)
+        );
+    """
+
+    async with conn.transaction():
+        await conn.execute(query)
+
+
 async def add_user(user_id, username):
     conn = await get_db_connection()
     if not conn:
@@ -57,7 +83,7 @@ async def get_all_users():
         return None
 
     users = [user[0] for user in await conn.fetch("SELECT user_id FROM users")]
-    return users if users else None
+    return users if users else []
 
 
 async def get_username(user_id):
