@@ -24,23 +24,38 @@ async def get_db_connection():
         return None
 
 
+async def create_dbs():
+    conn = await get_db_connection()
+    if not conn:
+        return None
+
+    query = """
+        CREATE TABLE IF NOT EXISTS users (
+            _id SERIAL PRIMARY KEY,
+            user_id VARCHAR(255) NOT NULL UNIQUE,
+            username VARCHAR(255),
+            habit VARCHAR(255),
+            start_date DATE,
+            communication_style BOOLEAN
+        );
+        
+        CREATE TABLE IF NOT EXISTS friends(
+            user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE,
+            friend_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE,
+            UNIQUE (user_id, friend_id)
+        );
+    """
+
+    async with conn.transaction():
+        await conn.execute(query)
+
+
 async def add_user(user_id, username):
     conn = await get_db_connection()
     if not conn:
         return None
 
     async with conn.transaction():
-        await conn.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                _id SERIAL PRIMARY KEY,
-                user_id VARCHAR(255) NOT NULL UNIQUE,
-                username VARCHAR(255),
-                habit VARCHAR(255),
-                start_date DATE,
-                communication_style BOOLEAN DEFAULT TRUE
-            );
-        """)
-
         query = """
             INSERT INTO users (user_id, username)
             VALUES ($1, $2)
@@ -57,7 +72,7 @@ async def get_all_users():
         return None
 
     users = [user[0] for user in await conn.fetch("SELECT user_id FROM users")]
-    return users if users else None
+    return users if users else []
 
 
 async def get_username(user_id):
@@ -124,7 +139,7 @@ async def get_user_progress(user_id):
 
     start_date = await conn.fetchrow("SELECT start_date FROM users WHERE user_id = $1", str(user_id))
     days_passed = (date.today() - start_date[0]).days
-    return days_passed
+    return days_passed if days_passed else 0
 
 
 async def set_start_date(user_id):
@@ -151,9 +166,7 @@ async def check_table_exists(table_name):
         """
     result = await conn.fetchrow(query, table_name)
 
-    if result[0]:
-        return True
-    return False
+    return True if result[0] else False
 
 
 async def check_user_exists(username):
@@ -194,14 +207,6 @@ async def add_friend(user_id, friend_username):
         return None
 
     async with conn.transaction():
-        await conn.execute("""
-            CREATE TABLE IF NOT EXISTS friends(
-                user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE,
-                friend_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE,
-                UNIQUE (user_id, friend_id)
-            );
-        """)
-
         query = """
             INSERT INTO friends (user_id, friend_id)
             VALUES ($1, (SELECT user_id FROM users WHERE username = $2))
@@ -248,7 +253,7 @@ async def get_friends_id_list(user_id):
     result = await conn.fetch("SELECT friend_id FROM friends WHERE user_id = $1", str(user_id))
     friend_list = [friend[0] for friend in result]
 
-    return friend_list
+    return friend_list if friend_list else []
 
 
 async def validate_habit_input(habit: str) -> bool:

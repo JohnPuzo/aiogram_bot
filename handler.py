@@ -3,8 +3,9 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
+import middleware
 from datafile import *
-from keyboard import main_menu, habit_keyboard, specialist_menu, type_keyboard
+from keyboard import *
 from llm_integration import llm_invoke, preset_history
 
 router = Router()
@@ -43,7 +44,7 @@ async def habit_selected(callback: types.CallbackQuery, state: FSMContext):
         await state.set_state(Form.wait_custom_habit)
     else:
         await set_habit(callback.from_user.id, default_habits[habit])
-        await callback.message.answer(f"Ты выбрал: {default_habits[habit]}.", reply_markup=main_menu)
+        await callback.message.answer(f"Ты выбрал: {default_habits[habit]}.")
         await callback.message.answer(
             "Теперь выбери, в какой форме ты хочешь получать советы: в шутливой или серьезной форме!",
             reply_markup=type_keyboard,
@@ -55,26 +56,66 @@ async def process_custom_habit(message: types.Message, state: FSMContext):
     habit = message.text.strip()
     if await validate_habit_input(habit):
         await set_habit(message.from_user.id, habit)
-        await message.answer(f"Ты выбрал: {habit}.", reply_markup=main_menu)
+        await message.answer(f"Ты выбрал: {habit}.")
         await message.answer(
             "Теперь выбери, в какой форме ты хочешь получать советы: в шутливой или серьезной форме!",
             reply_markup=type_keyboard,
         )
-        await state.clear()
     else:
         await message.answer(
             "Некорректный ввод. Привычка должна только буквы и пробелы. Слово должно быть написано в именительном падеже")
 
 
-@router.callback_query(lambda c: c.data.startswith("type_"))
-async def style_selection(callback: types.CallbackQuery):
+@router.callback_query(F.data.startswith("type_"))
+@middleware.checking_habit
+async def style_selection(callback: types.CallbackQuery, state: FSMContext):
     style_str = callback.data.split("_")[1]
     style = True if style_str == "true" else False
     await set_style(callback.from_user.id, style)
+
     await callback.message.answer(f"Ты выбрал: {styles[style_str]}. Начнем борьбу! 💪", reply_markup=main_menu)
+
+    await state.clear()
+
+
+@router.message(F.text == "Прогресс")
+@middleware.checking_habit
+@middleware.checking_style
+async def show_progress_menu(message: types.Message):
+    await message.answer("Выберите один из пунктов меню:", reply_markup=progress_menu)
+
+
+@router.message(F.text == "GigaChat")
+@middleware.checking_habit
+@middleware.checking_style
+async def show_gigachat_menu(message: types.Message):
+    await message.answer("Выберите один из пунктов меню:", reply_markup=gigachat_menu)
+
+
+@router.message(F.text == "Меню друзей")
+@middleware.checking_habit
+@middleware.checking_style
+async def show_gigachat_menu(message: types.Message):
+    await message.answer("Выберите один из пунктов меню:", reply_markup=friends_menu)
+
+
+@router.message(F.text == "Изменить привычку/тип общения")
+@middleware.checking_habit
+@middleware.checking_style
+async def show_gigachat_menu(message: types.Message):
+    await message.answer("Выберите один из пунктов меню:", reply_markup=change_menu)
+
+
+@router.message(F.text == "Назад")
+@middleware.checking_habit
+@middleware.checking_style
+async def show_main_menu(message: types.Message):
+    await message.answer("Выберите один из пунктов меню:", reply_markup=main_menu)
 
 
 @router.message(F.text == "Мой прогресс")
+@middleware.checking_habit
+@middleware.checking_style
 async def show_progress(message: types.Message):
     user_id = message.from_user.id
     day = await get_user_progress(user_id)
@@ -82,6 +123,8 @@ async def show_progress(message: types.Message):
 
 
 @router.message(F.text == "Я сорвался")
+@middleware.checking_habit
+@middleware.checking_style
 async def stop_progress(message: types.Message):
     user_id = message.from_user.id
     await set_start_date(user_id)
@@ -89,6 +132,8 @@ async def stop_progress(message: types.Message):
 
 
 @router.message(F.text == "Задание для отвлечения")
+@middleware.checking_habit
+@middleware.checking_style
 async def daily_task(message: types.Message, state: FSMContext):
     await preset_history(state=state, user_id=message.from_user.id, mode="task")
     result = await llm_invoke(message=message, state=state, only_one_answer=True)
@@ -96,16 +141,22 @@ async def daily_task(message: types.Message, state: FSMContext):
 
 
 @router.message(F.text == "Выбрать привычку")
+@middleware.checking_habit
+@middleware.checking_style
 async def change_habit(message: types.Message):
     await message.answer("Давай сменим привычку.", reply_markup=habit_keyboard)
 
 
 @router.message(F.text == "Выбрать тип")
+@middleware.checking_habit
+@middleware.checking_style
 async def change_style(message: types.Message):
     await message.answer("Давай сменим тип!", reply_markup=type_keyboard)
 
 
 @router.message(F.text == "Добавить друга")
+@middleware.checking_habit
+@middleware.checking_style
 async def cmd_add_friend(message: types.Message, state: FSMContext):
     await message.answer("Привет! Введите username друга (обычно начинается на @):")
     await state.set_state(Form.friend_username)
@@ -137,6 +188,8 @@ async def input_username_to_add(message: types.Message, state: FSMContext):
 
 
 @router.message(F.text == "Удалить друга")
+@middleware.checking_habit
+@middleware.checking_style
 async def cmd_delete_friend(message: types.Message, state: FSMContext):
     await message.answer("Привет! Введите username друга (обычно начинается на @):")
     await state.set_state(Form.friend_username_del)
@@ -165,7 +218,9 @@ async def input_username_to_del(message: types.Message, state: FSMContext):
     await state.clear()
 
 
-@router.message(F.text == "Связаться со специалистом")
+@router.message(F.text == "Написать специалисту")
+@middleware.checking_habit
+@middleware.checking_style
 async def contact_specialist(message: types.Message, state: FSMContext):
     await message.answer("Опиши свою проблему. Специалист скоро ответит.", reply_markup=specialist_menu)
     await preset_history(state=state, user_id=message.from_user.id, mode="global")
@@ -184,10 +239,8 @@ async def llm_chat(message: types.Message, state: FSMContext):
     await message.answer(result)
 
 
-def register_handlers(dp):
-    dp.include_router(router)
-
-
 @router.message()
+@middleware.checking_habit
+@middleware.checking_style
 async def unknown_command(message: types.Message):
-    await message.answer("Такой команды нет.")
+    await message.answer("Такой команды нет. Попробуйте что-нибудь из предложенных вариантов:", reply_markup=main_menu)
