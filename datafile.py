@@ -51,6 +51,24 @@ async def add_user(user_id, username):
         await conn.execute(query, str(user_id), username)
 
 
+async def get_all_users():
+    conn = await get_db_connection()
+    if not conn:
+        return None
+
+    users = [user[0] for user in await conn.fetch("SELECT user_id FROM users")]
+    return users if users else None
+
+
+async def get_username(user_id):
+    conn = await get_db_connection()
+    if not conn:
+        return None
+
+    name = await conn.fetchrow("SELECT username FROM users WHERE user_id = $1", str(user_id))
+    return name[0] if name else None
+
+
 async def get_habit(user_id):
     conn = await get_db_connection()
     if not conn:
@@ -217,6 +235,20 @@ async def delete_friend(user_id, friend_username):
                     WHERE user_id = (SELECT user_id FROM users WHERE username = $2) AND friend_id = $1;
                 """
             await conn.execute(query, str(user_id), friend_username)
+
+
+async def get_friends_id_list(user_id):
+    conn = await get_db_connection()
+    if not conn:
+        return None
+
+    if not await check_table_exists('friends'):
+        return None
+
+    result = await conn.fetch("SELECT friend_id FROM friends WHERE user_id = $1", str(user_id))
+    friend_list = [friend[0] for friend in result]
+
+    return friend_list
 
 
 async def validate_habit_input(habit: str) -> bool:
