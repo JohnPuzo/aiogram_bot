@@ -40,11 +40,13 @@ async def cmd_start(message: types.Message, state: FSMContext):
 @router.callback_query(lambda c: c.data.startswith("habit_"))
 async def habit_selected(callback: types.CallbackQuery, state: FSMContext):
     habit = callback.data.split("_")[1]
+
     data = await state.get_data()
     try:
         flag = data["habit_selection_chain"]
     except KeyError:
         flag = "True"
+
     if habit == "custom":
         await callback.message.answer("Напиши свою привычку:")
         await state.set_state(Form.wait_custom_habit)
@@ -61,13 +63,22 @@ async def habit_selected(callback: types.CallbackQuery, state: FSMContext):
 @router.message(Form.wait_custom_habit)
 async def process_custom_habit(message: types.Message, state: FSMContext):
     habit = message.text.strip()
+
+    data = await state.get_data()
+    try:
+        flag = data["habit_selection_chain"]
+    except KeyError:
+        flag = "True"
+
     if await validate_habit_input(habit):
         await set_habit(message.from_user.id, habit)
         await message.answer(f"Ты выбрал: {habit}.")
-        await message.answer(
-            "Теперь выбери, в какой форме ты хочешь получать советы: в шутливой или серьезной форме!",
-            reply_markup=type_keyboard,
-        )
+        if flag == "True":
+            await message.answer(
+                "Теперь выбери, в какой форме ты хочешь получать советы: в шутливой или серьезной форме!",
+                reply_markup=type_keyboard,
+            )
+        await state.clear()
     else:
         await message.answer(
             "Некорректный ввод. Привычка должна только буквы и пробелы. Слово должно быть написано в именительном падеже")
@@ -264,3 +275,32 @@ async def llm_chat(message: types.Message, state: FSMContext):
 @middleware.checking_style
 async def unknown_command(message: types.Message):
     await message.answer("Такой команды нет. Попробуйте что-нибудь из предложенных вариантов:", reply_markup=main_menu)
+
+
+async def get_friends_progress(user_id):
+    friends_ids = await get_friends_id_list(user_id)
+    if not friends_ids:
+        return []
+
+    friends_progress = []
+    for friend in friends_ids:
+        friends_progress.append({
+            "username": await get_username(friend),
+            "habit": await get_habit(friend),
+            "days": await get_user_progress(friend)
+        })
+
+    return friends_progress
+
+
+async def daily_progress(bot):
+    for user_id in await get_all_users():
+        progress = await get_user_progress(user_id)
+        friend_progress = await get_friends_progress(user_id)
+
+        message = f"🌞 Добрый день! Твой прогресс: {progress} дней без привычки! 🚀"
+        if len(friend_progress) > 0:
+            message += "\n👬 **Прогресс твоих друзей:**\n"
+            for friend in friend_progress:
+                message += f"🔹 {friend['username']}: {friend['days']} дней (борется с {friend['habit']})\n"
+        await bot.send_message(user_id, message)

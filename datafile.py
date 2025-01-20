@@ -138,6 +138,8 @@ async def get_user_progress(user_id):
         return None
 
     start_date = await conn.fetchrow("SELECT start_date FROM users WHERE user_id = $1", str(user_id))
+    if not start_date[0]:
+        return 0
     days_passed = (date.today() - start_date[0]).days
     return days_passed if days_passed else 0
 
@@ -248,7 +250,7 @@ async def get_friends_id_list(user_id):
         return None
 
     if not await check_table_exists('friends'):
-        return None
+        return []
 
     result = await conn.fetch("SELECT friend_id FROM friends WHERE user_id = $1", str(user_id))
     friend_list = [friend[0] for friend in result]

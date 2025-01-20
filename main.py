@@ -6,11 +6,11 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 
 from datafile import create_dbs
-from handler import router
-from scheduler import daily_progress
+from handler import router, daily_progress
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,7 +32,9 @@ async def main():
     dp = Dispatcher()
     dp.include_router(router)
 
-    asyncio.create_task(daily_progress(bot))
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(daily_progress, "cron", hour=12, minute=00, args=[bot])
+    scheduler.start()
 
     await dp.start_polling(bot)
 
