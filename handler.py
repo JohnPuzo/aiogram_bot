@@ -31,24 +31,31 @@ styles = {
 
 
 @router.message(Command("start"))
-async def cmd_start(message: types.Message):
+async def cmd_start(message: types.Message, state: FSMContext):
     await add_user(message.from_user.id, message.from_user.username)
+    await state.update_data(habit_selection_chain="True")
     await message.answer("Привет! Выбери привычку, от которой хочешь избавиться.", reply_markup=habit_keyboard)
 
 
 @router.callback_query(lambda c: c.data.startswith("habit_"))
 async def habit_selected(callback: types.CallbackQuery, state: FSMContext):
     habit = callback.data.split("_")[1]
+    data = await state.get_data()
+    try:
+        flag = data["habit_selection_chain"]
+    except KeyError:
+        flag = "True"
     if habit == "custom":
         await callback.message.answer("Напиши свою привычку:")
         await state.set_state(Form.wait_custom_habit)
     else:
         await set_habit(callback.from_user.id, default_habits[habit])
         await callback.message.answer(f"Ты выбрал: {default_habits[habit]}.")
-        await callback.message.answer(
-            "Теперь выбери, в какой форме ты хочешь получать советы: в шутливой или серьезной форме!",
-            reply_markup=type_keyboard,
-        )
+        if flag == "True":
+            await callback.message.answer(
+                "Теперь выбери, в какой форме ты хочешь получать советы: в шутливой или серьезной форме!",
+                reply_markup=type_keyboard,
+            )
 
 
 @router.message(Form.wait_custom_habit)
@@ -143,7 +150,8 @@ async def daily_task(message: types.Message, state: FSMContext):
 @router.message(F.text == "Выбрать привычку")
 @middleware.checking_habit
 @middleware.checking_style
-async def change_habit(message: types.Message):
+async def change_habit(message: types.Message, state: FSMContext):
+    await state.update_data(habit_selection_chain="False")
     await message.answer("Давай сменим привычку.", reply_markup=habit_keyboard)
 
 
