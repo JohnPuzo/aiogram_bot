@@ -25,8 +25,8 @@ default_habits = {
 }
 
 styles = {
-    "true": "Серьезно",
-    "false": "Шутливо",
+    "formal": "Формально 🎩",
+    "informal": "Неформально 🤪",
 }
 
 
@@ -77,7 +77,7 @@ async def process_custom_habit(message: types.Message, state: FSMContext):
 @middleware.checking_habit
 async def style_selection(callback: types.CallbackQuery, state: FSMContext):
     style_str = callback.data.split("_")[1]
-    style = True if style_str == "true" else False
+    style = True if style_str == "formal" else False
     await set_style(callback.from_user.id, style)
 
     await callback.message.answer(f"Ты выбрал: {styles[style_str]}. Начнем борьбу! 💪", reply_markup=main_menu)
@@ -85,6 +85,7 @@ async def style_selection(callback: types.CallbackQuery, state: FSMContext):
     await state.clear()
 
 
+@router.message(Command("progress"))
 @router.message(F.text == "Прогресс")
 @middleware.checking_habit
 @middleware.checking_style
@@ -92,6 +93,7 @@ async def show_progress_menu(message: types.Message):
     await message.answer("Выберите один из пунктов меню:", reply_markup=progress_menu)
 
 
+@router.message(Command("gigachat"))
 @router.message(F.text == "GigaChat")
 @middleware.checking_habit
 @middleware.checking_style
@@ -99,6 +101,7 @@ async def show_gigachat_menu(message: types.Message):
     await message.answer("Выберите один из пунктов меню:", reply_markup=gigachat_menu)
 
 
+@router.message(Command("friends"))
 @router.message(F.text == "Меню друзей")
 @middleware.checking_habit
 @middleware.checking_style
@@ -106,13 +109,15 @@ async def show_gigachat_menu(message: types.Message):
     await message.answer("Выберите один из пунктов меню:", reply_markup=friends_menu)
 
 
-@router.message(F.text == "Изменить привычку/тип общения")
+@router.message(Command("settings"))
+@router.message(F.text == "Настройки")
 @middleware.checking_habit
 @middleware.checking_style
 async def show_gigachat_menu(message: types.Message):
     await message.answer("Выберите один из пунктов меню:", reply_markup=change_menu)
 
 
+@router.message(Command("menu"))
 @router.message(F.text == "Назад")
 @middleware.checking_habit
 @middleware.checking_style
@@ -120,6 +125,7 @@ async def show_main_menu(message: types.Message):
     await message.answer("Выберите один из пунктов меню:", reply_markup=main_menu)
 
 
+@router.message(Command("my_progress"))
 @router.message(F.text == "Мой прогресс")
 @middleware.checking_habit
 @middleware.checking_style
@@ -129,6 +135,7 @@ async def show_progress(message: types.Message):
     await message.answer(f"Ты не поддавался привычке {day} дней! 🎉")
 
 
+@router.message(Command("stop_progress"))
 @router.message(F.text == "Я сорвался")
 @middleware.checking_habit
 @middleware.checking_style
@@ -138,6 +145,7 @@ async def stop_progress(message: types.Message):
     await message.answer("Не переживай, это случается! Ты должен попробовать снова. 😅")
 
 
+@router.message(Command("task"))
 @router.message(F.text == "Задание для отвлечения")
 @middleware.checking_habit
 @middleware.checking_style
@@ -147,6 +155,7 @@ async def daily_task(message: types.Message, state: FSMContext):
     await message.answer(result)
 
 
+@router.message(Command("change_habit"))
 @router.message(F.text == "Выбрать привычку")
 @middleware.checking_habit
 @middleware.checking_style
@@ -155,6 +164,7 @@ async def change_habit(message: types.Message, state: FSMContext):
     await message.answer("Давай сменим привычку.", reply_markup=habit_keyboard)
 
 
+@router.message(Command("change_style"))
 @router.message(F.text == "Выбрать тип")
 @middleware.checking_habit
 @middleware.checking_style
@@ -162,6 +172,7 @@ async def change_style(message: types.Message):
     await message.answer("Давай сменим тип!", reply_markup=type_keyboard)
 
 
+@router.message(Command("add_friend"))
 @router.message(F.text == "Добавить друга")
 @middleware.checking_habit
 @middleware.checking_style
@@ -195,6 +206,7 @@ async def input_username_to_add(message: types.Message, state: FSMContext):
     await state.clear()
 
 
+@router.message(Command("delete_friend"))
 @router.message(F.text == "Удалить друга")
 @middleware.checking_habit
 @middleware.checking_style
