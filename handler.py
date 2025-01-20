@@ -63,8 +63,7 @@ async def process_custom_habit(message: types.Message, state: FSMContext):
         )
     else:
         await message.answer(
-            "Некорректный ввод. Привычка должна быть от 3 до 30 символов и содержать только буквы и пробелы. " +
-            "Слово должно быть написано в именительном падеже")
+            "Некорректный ввод. Привычка должна только буквы и пробелы. Слово должно быть написано в именительном падеже")
 
 
 @router.callback_query(F.data.startswith("type_"))
