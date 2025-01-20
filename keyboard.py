@@ -4,7 +4,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 main_menu = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="Прогресс"), KeyboardButton(text="GigaChat")],
-        [KeyboardButton(text="Меню друзей"), KeyboardButton(text="Изменить привычку/тип общения")],
+        [KeyboardButton(text="Меню друзей"), KeyboardButton(text="Настройки")],
     ],
     resize_keyboard=True
 )
@@ -21,8 +21,8 @@ habit_keyboard = InlineKeyboardMarkup(
 
 type_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="Серьезно 😎", callback_data="type_true")],
-        [InlineKeyboardButton(text="Шутливо 😂", callback_data="type_false")],
+        [InlineKeyboardButton(text="Формально 🎩", callback_data="type_formal")],
+        [InlineKeyboardButton(text="Неформально 🤪", callback_data="type_informal")],
     ]
 )
 
